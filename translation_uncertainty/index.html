@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chinese Text Highlighter</title>
+  <style>
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      margin: 20px;
+    }
+    #text {
+      font-size: 18px;
+      line-height: 1.6;
+    }
+    .error-message {
+      color: red;
+      display: none;
+    }
+    .word-tooltip {
+      position: absolute;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-width: 300px;
+      z-index: 1000;
+      font-size: 14px;
+      line-height: 1.4;
+      display: none;
+    }
+    .highlighted-word {
+      position: relative;
+      cursor: help;
+    }
+  </style>
+</head>
+<body>
+  <!-- This is the paragraph containing the text you want to highlight -->
+  <p id="text">
+    全党必须铭记生于忧患、死于安乐，常怀远虑、居安思危，继续推进新时代党的建设新的伟大工程，坚持全面从严治党，坚定不移推进党风廉政建设和反腐败斗争，勇敢面对党面临的长期执政考验、改革开放考验、市场经济考验、外部环境考验，坚决战胜精神懈怠的危险、能力不足的危险、脱离群众的危险、消极腐败的危险。必须保持越是艰险越向前的英雄气概，敢于斗争、善于斗争，逢山开道、遇水架桥，做到难不住、压不垮，推动中国特色社会主义事业航船劈波斩浪、一往无前。
+  </p>
+  <p class="error-message" id="error">If you see this message, it means the JSON file failed to load. Please ensure you are running this page through a local server.</p>
+
+  <!-- Include your script -->
+  <script src="script.js"></script>
+  <script>
+    window.addEventListener('error', function(e) {
+      document.getElementById('error').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
