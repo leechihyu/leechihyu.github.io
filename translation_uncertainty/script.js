@@ -64,7 +64,7 @@ fetch('words.json')
       const regExp = new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
       originalText = originalText.replace(
         regExp,
-        `<span class="highlighted-word" style="background-color:${color}" data-translations="${translations.join('&#10;')}" data-word="${word}">${word}</span>`
+        `<span class="highlighted-word" style="background-color:${color}" data-translations="${translations.join('&#10;')}">${word}</span>`
       );
     });
 
@@ -75,9 +75,7 @@ fetch('words.json')
     document.querySelectorAll('.highlighted-word').forEach(element => {
       element.addEventListener('mouseenter', (e) => {
         const translations = e.target.getAttribute('data-translations').split('\n');
-        const word = e.target.getAttribute('data-word');
-        tooltip.innerHTML = `<div style="font-size: 16px; font-weight: bold; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #eee;">${word}</div>` +
-                          translations.map((t, i) => `${i + 1}. ${t}`).join('<br>');
+        tooltip.innerHTML = translations.map((t, i) => `${i + 1}. ${t}`).join('<br>');
         tooltip.style.display = 'block';
         positionTooltip(tooltip, e.target);
       });
