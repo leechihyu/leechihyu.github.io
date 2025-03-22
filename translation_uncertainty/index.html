@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8" />
-  <title>Chinese Text Highlighter</title>
+  <title>Uncertain Translations</title>
   <style>
     body {
       font-family: "Microsoft YaHei", sans-serif;
@@ -11,6 +11,7 @@
     #text {
       font-size: 18px;
       line-height: 1.6;
+      margin-bottom: 20px;
     }
     .error-message {
       color: red;
@@ -31,16 +32,36 @@
     }
     .highlighted-word {
       position: relative;
-      cursor: help;
+      cursor: pointer;
+    }
+    #translations-box {
+      width: 100%;
+      min-height: 150px;
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.6;
+      background-color: #f9f9f9;
+    }
+    .translation-item {
+      margin-bottom: 8px;
+    }
+    .translation-item:last-child {
+      margin-bottom: 0;
     }
   </style>
 </head>
 <body>
+
+  <h2>Uncertain Translations</h2>
   <!-- This is the paragraph containing the text you want to highlight -->
   <p id="text">
     全党必须铭记生于忧患、死于安乐，常怀远虑、居安思危，继续推进新时代党的建设新的伟大工程，坚持全面从严治党，坚定不移推进党风廉政建设和反腐败斗争，勇敢面对党面临的长期执政考验、改革开放考验、市场经济考验、外部环境考验，坚决战胜精神懈怠的危险、能力不足的危险、脱离群众的危险、消极腐败的危险。必须保持越是艰险越向前的英雄气概，敢于斗争、善于斗争，逢山开道、遇水架桥，做到难不住、压不垮，推动中国特色社会主义事业航船劈波斩浪、一往无前。
   </p>
-  <p class="error-message" id="error">If you see this message, it means the JSON file failed to load. Please ensure you are running this page through a local server.</p>
+  <div id="translations-box"></div>
+  <p class="error-message" id="error">if you see this message, it means the JSON file failed to load. please ensure to run this page through a local server.</p>
 
   <!-- Include your script -->
   <script src="script.js"></script>
