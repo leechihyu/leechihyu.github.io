@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPT Illustration</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}}); 
+    </script>
+    <script type="text/javascript"
+    src="http://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+</head>
+<body>
+    <div id="sidebar" class="sidebar">
+        <button id="sidebar-toggle" class="sidebar-toggle">&#9776;</button>
+        <nav>
+            <ul>
+                <li class="nav-h2"><a href="#model-architecture">Large Language Model Architecture and Working Mechanism</a></li>
+                <li class="nav-h3"><a href="#model-head">Model Head</a></li>
+                <li class="nav-h3"><a href="#model-body">Model Body: Transformer Module</a></li>
+                <li class="nav-h3"><a href="#model-tail">Model Tail</a></li>
+                <li class="nav-h3"><a href="#model-summary">Summary: Large Language Model Architecture and Working Mechanism</a></li>
+                <li class="nav-h2"><a href="#training">Data and Model Training</a></li>
+                <li class="nav-h3"><a href="#training-summary">Summary: Data and Model Training</a></li>
+                <li class="nav-h2"><a href="#ops">Large Model Operations</a></li>
+                <li class="nav-h3"><a href="#ops-summary">Summary: Large Model Operations (LLMOps)</a></li>
+                <li class="nav-h2"><a href="#safety">Extra Topic: Content Safety</a></li>
+                <li class="nav-h3"><a href="#safety-summary">Summary: Content Safety</a></li>
+                <li class="nav-h2"><a href="#other">Other Topics</a></li>
+            </ul>
+        </nav>
+    </div>
+    <div class="container">
+    <div class="post-header">
+        <h1 class="post-title">A Large Model Guide for Social Scientists</h1>
+        <div class="post-meta">
+            <span class="post-author">Author: Zhiyu Li</span>
+            <span class="post-date">August 8, 2025</span>
+        </div>
+    </div>
+<div class="toc-widget">
+        <h2>Table of Contents</h2>
+        <ul>
+            <li class="nav-h2"><a href="#model-structure">Large Language Model Architecture and Working Mechanism</a></li>
+            <li class="nav-h3"><a href="#model-head">Model Head</a></li>
+            <li class="nav-h3"><a href="#model-body">Model Body: Transformer Module</a></li>
+            <li class="nav-h3"><a href="#model-tail">Model Tail</a></li>
+            <li class="nav-h3"><a href="#model-summary">Summary: Large Language Model Architecture and Working Mechanism</a></li>
+            <li class="nav-h2"><a href="#training">Data and Model Training</a></li>
+            <li class="nav-h3"><a href="#training-summary">Summary: Data and Model Training</a></li>
+            <li class="nav-h2"><a href="#ops">Large Model Operations</a></li>
+            <li class="nav-h3"><a href="#ops-summary">Summary: Large Model Operations (LLMOps)</a></li>
+            <li class="nav-h2"><a href="#security">Extra Topic: Content Safety</a></li>
+            <li class="nav-h3"><a href="#security-summary">Summary: Content Safety</a></li>
+            <li class="nav-h2"><a href="#other">Other Topics</a></li>
+        </ul>
+    </div>
+
+    <p>This post aims to provide social science researchers who wish to understand how large language models work with an introduction that is moderately in-depth, broad in scope, and appropriately balanced in detail.</p>
+
+    <p>Many social science researchers are interested in large language models, especially chatbots built on them that are widely accessible to the public. However, most existing introductions either remain at an abstract technical overview (such as attention mechanisms or the principle of autoregression) or are too narrow in scope, overlooking content equally important to social research, such as Chain-of-Thought (CoT), model operations (LLMOps), and the latest research findings.</p>
+
+    <p>For the general public, a rough understanding of how large language models work may be sufficient, but for researchers committed to studying the social impacts of large language models or their broader sociocultural significance, such an overview is too shallow. This article seeks to fill that gap. It will introduce the architecture of large language models with code examples, present recent research findings from academic papers, and outline how these models are deployed in industry. Of course, these points do not cover all aspects of model operation and research. Other topics — such as how to update model weights (e.g. LoRA), how to improve inference speed (e.g., KV Cache), or how to interpret feature superposition in model parameters — are also important, but hold less significance for social science researchers and will be omitted here. In summary, this article will cover three parts:</p>
+
+    <ol>
+      <li>The architecture of large language models and their internal working mechanisms (Model);</li>
+      <li>Data and post-training, including supervised fine-tuning (SFT) and reinforcement learning from human feedback (RLHF) (Data);</li>
+      <li>Large language model operations—how AI companies deploy models for public use (LLMOps).</li>
+    </ol>
+    
+    <p>The author believes that understanding these three parts can provide a solid foundation for social science research on large language models.</p>
+
+    <p>This article contains a substantial amount of information. Readers from different backgrounds can choose their reading path based on their interests and needs:</p>
+<ul>
+    <li><strong>Quickly grasp the overall picture of large models</strong> → Recommended to read the “Introduction” + the first two paragraphs of “Large Language Model Architecture and Working Mechanism” + the key conclusions at the end of each section.</li>
+    <li><strong>Understand how the model works</strong> → Focus on the “Model Architecture” section (you may skim the code, focusing on mechanism principles and architecture evolution).</li>
+    <li><strong>Interested in how the model is trained and evolves</strong> → Focus on “Data and Model Training,” especially the sections on pretraining, SFT, RLHF, reasoning models, and HRM.</li>
+    <li><strong>Interested in engineering and service operations</strong> → Read “Large Model Operations” to understand the full process from user input to GPU computation.</li>
+    <li><strong>Concerned with policy and risk governance</strong> → Read “Extra Topic: Content Safety” to understand possible approaches for data filtering, training-time interventions, and deployment-time moderation.</li>
+    <li><strong>Want a panoramic understanding</strong> → Read the entire article in order, and refer to the linked articles for deeper academic and technical materials.</li>
+</ul>
+
+<h2 id="model-architecture">Large Language Model Architecture and Working Mechanism</h2>
+
+<p>Abstractly, a large language model can be viewed as a stochastic function: the input is the user’s text, and the output is the model’s generated answer. “Stochastic” here means the model will not always give exactly the same answer; instead, it samples according to a probability distribution. For a simple example, suppose that after tokenization the user’s input contains 10 tokens, and the model ultimately generates 20 new tokens. In the generation process, the model essentially performs 20 iterations: in the first iteration, the input is the 10 tokens from the user, and the output is the first new token; in the second iteration, the input is all 11 tokens from the previous step, and the output is the second new token; … and so on. When the model generates a special end-of-sequence token (such as &lt;END&gt;) or reaches the maximum token limit, it stops generating. This process of “continuously using all previous output as the input for the next step, predicting the next token step-by-step” is called autoregression. Models that use this approach are also called causal language models or Generative Pretrained Transformers (GPT). As a side note, models trained with pretraining only often lack the ability to judge when to stop, and may output all content related to the input in one go until hitting the length limit—we will revisit this later.</p>
+
+<p>From a broader perspective, a large language model can be regarded as a stochastic function: given an input, it generates an output distribution. But it is far from as straightforward as computing f(x) = 2x — inside it is a massive feed-forward network with hundreds of millions, or even tens of billions, of trainable parameters. How exactly is this “stochastic function” defined? The answer lies in its architecture. Let’s take a look.</p>
+
+<p>I will explain the core architecture of large language models — the decoder-only model — with code examples. First, to answer a possible question: is it worth learning this architecture line-by-line? My answer: yes. Decoder models currently dominate the industry, with almost no other architecture able to compete head-on. The GPT series, LLaMA series, Mixtral, and DeepSeek R1 are all variants of decoder architectures. The classic GPT uses a dense decoder; DeepSeek R1 uses a sparse Mixture-of-Experts (MoE) decoder architecture. OpenAI has also recently open-sourced <a href="https://huggingface.co/openai">two MoE models</a>. In short, MoE models have several times more total parameters than dense models, but only a few “expert” subnetworks are activated per inference, so inference speed is actually faster, while also enabling training on larger-scale and more data under the same compute budget. Given current trends, MoE or other forms of sparse models are likely to play an important role in the future, especially as hardware and software optimizations continue to improve.</p>
+        
+<p>In the Transformer field, the most closely watched potential challenger is the <a href="https://arxiv.org/abs/2312.00752">Mamba architecture</a> proposed in 2023, a design approach completely different from decoders. It generated a great deal of discussion upon its release but has since seen no major breakthroughs. Recently, NVIDIA also released <a href="https://research.nvidia.com/publication/2025-06_mambavision-hybrid-mamba-transformer-vision-backbone">research on Mamba</a>, but in the direction of combining it with Transformers. The practical issue is that Mamba currently lacks hardware support such as GPU/TPU optimizations, and it also lacks a mature ecosystem. As long as the scaling law potential of decoder architectures has not been fully tapped, large technology companies have little incentive to invest heavily in betting on Mamba. Therefore, from a practical standpoint, the current focus can remain on decoder architectures. Moreover, decoder and encoder models share highly similar core mechanisms, so mastering how decoders work also lays a solid foundation for understanding Transformer architectures, including encoders.</p>
+
+<p>The decoder model is composed of N identical stacked modules. You can think of it as: a “head” that processes text, a “body” made up of N layers with the same structure, and a “tail” that converts numbers back into text.</p>
+
+<p text-align="center">
+    <img src="https://raw.githubusercontent.com/leechihyu/Asset/c6a9c209d26e431ec76f2fb9c7b82be8dc5f1fe8/llm_illustration/fig3.png" alt="GPT Full Architecture" width="400">
+</p>
+
+<p><a href="https://medium.com/@anitishkoffice/historical-context-seq2seq-paper-and-nmt-by-joint-learning-to-align-translate-paper-da0f6f2fe939">Source</a></p>
+
+<p>Let’s start with the “head” part. Since computers can only process numbers, and the essence of neural network computation is matrix operations, the model’s first step is to convert the input text into numerical vectors. More precisely, this step needs to complete two tasks: (1) convert tokens into vectors; and (2) add positional information. How is this done in practice?</p>
+
+<p>Before entering the model, the text first passes through a tokenizer. The tokenizer automatically splits the text into the model’s basic “vocabulary units” and looks up their corresponding IDs. For example, in DeepSeek’s vocabulary, the word “Apple” might correspond to ID 26567. The segmentation method for other languages, such as Chinese, is not exactly the same: some vocabularies treat each Chinese character as a token, while others treat entire words like “人工智能” (“artificial intelligence”) as a single token. Vocabulary design varies across languages and models, which affects segmentation methods. This article will not go into the details of how a tokenizer is built, as that is not highly relevant to most social science research, but understanding its function is useful for recognizing how model inputs are processed.</p>
+
+
+<h3 id="model-head">Model Head</h3>
+
+<p><strong>Convert tokens into vectors</strong></p>
+<pre>
+    <code>
+        import torch
+        import torch.nn as nn
+        import math
+
+        class InputEmbeddings(nn.Module):
+
+            def __init__(self, d_model: int, vocab_size: int) -> None:
+                super().__init__()
+                self.d_model = d_model
+                self.vocab_size = vocab_size
+                self.embedding = nn.Embedding(vocab_size, d_model)
+
+            def forward(self, x):
+                # (batch, seq_len) --> (batch, seq_len, d_model)
+                # Multiply by sqrt(d_model) to scale the embeddings according to the paper
+                return self.embedding(x) * math.sqrt(self.d_model)
+    </code>
+</pre>
+
+<p>The first step is to convert text into vectors. Here, <code>nn.Embedding</code> can be understood as a “lookup table” — the number of tokens in the vocabulary determines the number of rows, and each row is a vector of length <code>d_model</code>.</p>
+
+<li>vocab_size: vocabulary size (total number of tokens)</li>
+
+<li>d_model: model dimension, i.e., the length of each token vector</li>
+
+<p>During training, the model automatically learns the parameters in this table so that the vector for each token carries its semantic features.</p>
+
+<p><strong>Add positional information</strong></p>
+
+<pre>
+    <code>
+    class PositionalEncoding(nn.Module):
+
+        def __init__(self, d_model: int, seq_len: int, dropout: float) -> None:
+            super().__init__()
+            self.d_model = d_model
+            self.seq_len = seq_len
+            self.dropout = nn.Dropout(dropout)
+            # Create a matrix of shape (seq_len, d_model)
+            pe = torch.zeros(seq_len, d_model)
+            # Create a vector of shape (seq_len)
+            position = torch.arange(0, seq_len, dtype=torch.float).unsqueeze(1) # (seq_len, 1)
+            # Create a vector of shape (d_model)
+            div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)) # (d_model / 2)
+            # Apply sine to even indices
+            pe[:, 0::2] = torch.sin(position * div_term) # sin(position * (10000 ** (2i / d_model))
+            # Apply cosine to odd indices
+            pe[:, 1::2] = torch.cos(position * div_term) # cos(position * (10000 ** (2i / d_model))
+            # Add a batch dimension to the positional encoding
+            pe = pe.unsqueeze(0) # (1, seq_len, d_model)
+            # Register the positional encoding as a buffer
+            self.register_buffer('pe', pe)
+
+        def forward(self, x):
+            x = x + (self.pe[:, :x.shape[1], :]).requires_grad_(False) # (batch, seq_len, d_model)
+            return self.dropout(x)
+    </code>
+</pre>
+
+<p>Token vectors alone are not enough, because natural languages are read from one direction to another. A word’s meaning can change depending on where it appears in a sentence. Positional encoding tells the model “where this word is in the sentence.” A common approach is to use fixed sine and cosine functions to generate position vectors, with the formula:</p>
+
+<p>$PE_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{\frac{2i}{d}}}\right)$</p>
+
+<p>$PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{\frac{2i}{d}}}\right)$</p>
+
+<p>Of course, we could also let the model learn how to embed positional information, which is more flexible but adds more computation. A learned positional encoder would have <code>max_seq_len * d_model</code> parameters. Note that in the <code>forward(...)</code> function, we define how the model processes token embeddings and what is returned to the next layer.</p>
+
+<pre>
+    <code>
+    def forward(self, x):
+        x = x + (self.pe[:, :x.shape[1], :]).requires_grad_(False) # (batch, seq_len, d_model)
+        return self.dropout(x)
+    </code>
+</pre>
+
+<p>The above code shows the workflow of the positional encoding layer. It takes the output from the token embedding layer (shape <code>(1, n_seq, d_model)</code>), computes positional encodings for each position and dimension, adds them to the token embeddings, and then returns a version with some elements randomly dropped (dropout) to prevent overfitting.</p>
+
+<p>At this point, we have a tensor still of shape <code>(1, n_token, d_model)</code>. Now we move on to the critical part — the Transformer module.</p>
+
+<h3 id="model-body">Model Body: Transformer Module $\times N$ </h3>
+
+<p>The Transformer module is the core of a large language model, and within it, the multi-head attention mechanism is the core of the core. This mechanism first appeared in the paper <a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a>, and the “Attention” in the title refers to it.</p>
+
+<img src="https://raw.githubusercontent.com/leechihyu/Asset/9ed080389a9994f63ee1e03fd229736df1156d3c/llm_illustration/fig4.png" width="500">
+
+<p><a href="https://en.wikipedia.org/wiki/Attention_(machine_learning)">Source</a></p>
+
+<p>Intuitively, the goal of the attention mechanism is to find the information most relevant to the current token and use it to predict the output. Here’s a simple example:</p>
+
+<pre><code>Tom is a cute little boy, we all like _</code></pre>
+
+<p>If humans were to predict the word in the blank, they would automatically focus on “Tom,” “cute,” and “little boy.” The first gives the name, the second provides emotional and descriptive information, and the last gives gender attributes.</p>
+
+<p>Machines need to do something similar:</p>
+
+<ol>1. Identify the token we want to predict (the Query).</ol>
+
+<ol>2. In the existing context, find the tokens most related to it (calculate attention scores using Queries and Keys).</ol>
+
+<ol>3. Aggregate the information from the relevant tokens (weighted sum of Values).</ol>
+
+<p>Formally, for each input token’s embedding, we use linear projections to obtain Q (query), K (key), and V (value):</p>
+
+<li>Q: represents “what I’m asking about”</li>
+
+<li>K: answers “can you match my question?”</li>
+
+<li>V: provides the matched content information</li>
+
+<p>The attention scores are calculated from the similarity between Q and K. These scores are used as weights on V to produce a context-enriched vector for prediction. Multi-head attention simply performs this process in parallel across multiple sets, allowing the model to attend to different types of relationships simultaneously.</p>
+
+<p>Attention Score = $Softmax\left(\frac{QK^{T}}{\sqrt{d_{k}}}\right)$</p>
+
+<p>After obtaining the attention scores, we can weight the values: $Attention(Q,K,V) = Softmax\left(\frac{QK^{T}}{\sqrt{d_{k}}}\right)V$</p>
+
+<p>In a Transformer, Q, K, and V are not given in advance; they are learned by the model. Specifically, each token enters the attention mechanism as a vector of shape (1, d_model) (its embedding). In self-attention, Q, K, and V are all derived from this same vector, but each is obtained via a different linear transformation. These transformations are defined by trainable matrices $W_{Q}$, $W_{K}$, and $W_{V}$:</p>
+
+<li>Q = embedding $\times W_{Q}$</li>
+
+<li>K = embedding $\times W_{K}$</li>
+
+<li>V = embedding $\times W_{V}$</li>
+
+<p>Because the parameters $W_{Q}$, $W_{K}$, and $W_{V}$ are updated during training, the model gradually learns how to make Q, K, and V each “do their job”:</p>
+
+<li>Q is better at asking questions and finding relationships</li>
+
+<li>K is better at providing matching criteria</li>
+
+<li>V is better at conveying contextual semantic information</li>
+
+<p>In other words, Q, K, and V in self-attention all come from the same input vector, but through different projection matrices they learn to collaborate, enabling the model to compute attention scores and integrate contextual information. That covers the basic principle of attention. One highly practical property is that it can be computed in parallel. In most architecture diagrams, you’ll see the attention layer labeled “MultiHeadAttention” — this is multi-head attention. The approach is: split the d_model dimension evenly into n parts. For example, if d_model = 2048, it can be split into 32 parts of 64 dimensions each — meaning 32 attention heads. Each head independently performs the full attention calculation — computing its own Q, K, V, then applying attention scores to V. Each head views the sequence from a different perspective or feature space. When all heads finish, their results are concatenated into a new vector, combining multiple types of relational information. This is why it’s called “multi-head” attention, and why it can capture multiple relationships in parallel.</p>
+
+<p>The feed-forward network (FFN) follows the attention mechanism. Multi-head attention slices the d_model vector into heads for separate processing, temporarily “splitting” some feature interactions. Before entering the FFN, the outputs of all heads are concatenated back into a single d_model-dimensional vector. The FFN then applies nonlinear transformations over the whole vector space, allowing different features to interact again and extracting higher-level representations. To increase capacity, the FFN is often much larger than d_model — e.g., 4× — and thus contains many parameters. Notably, the main difference between dense decoders and Mixture-of-Experts (MoE) architectures lies in the FFN: dense models use a single fully connected FFN, while MoE introduces multiple “expert” networks, activating only a few during inference to achieve sparse computation.</p>
+
+<p>After the FFN, two common structures improve training stability: Layer Normalization normalizes each sample’s feature distribution to help prevent gradient explosion/vanishing; residual connections (<a href="https://arxiv.org/abs/1512.03385">ResNet structure</a>) add the module’s input directly to its output, allowing information to “skip” complex transformations and making deep networks easier to train.</p>
+
+<p>This “Multi-Head Attention → Feed-Forward → Normalization & Residual” structure is stacked N times to form the decoder body. More layers generally increase the model’s expressiveness, but also multiply compututation and memory requirements.</p>
+
+<h3 id="model-tail">Model Tail</h3>
+
+<p>After processing through N layers of decoder modules, we finally obtain a representation matrix of shape (n_seq, d_model), which in mathematical terms condenses all the key information from the input context. Next, the model needs to convert this “semantic vector” into actual words (tokens). This is the job of the projection layer: it maps each position’s vector to a vector of length <code>vocab_size</code>, where each component (logit) represents the relative tendency of generating that token. After applying a softmax operation, we obtain a probability distribution, from which the most likely next token can be selected. The following code shows an implementation of this projection layer, which is essentially a simple linear mapping:</p>
+
+<pre>
+    <code>
+    class ProjectionLayer(nn.Module):
+        def __init__(self, d_model, vocab_size) -> None:
+            super().__init__()
+            self.proj = nn.Linear(d_model, vocab_size)
+
+        def forward(self, x) -> None:
+            # (batch, seq_len, d_model) --> (batch, seq_len, vocab_size)
+            return self.proj(x)
+    </code>
+</pre>
+
+<p>A natural drawback of the attention mechanism is that it is both computationally and memory intensive. During generation, it calculates attention scores between every token and all other tokens in the input sequence, making its time complexity grow quadratically with sequence length ($O(n^{2})$). Without specially-designed optimization strategies, all tokens must be loaded into VRAM at once, which creates heavy memory pressure. As a result, in practical deployments, models usually set a maximum input length. Even with sufficient computation resources, vanilla decoder models still suffer from <a href="https://arxiv.org/abs/2307.03172">U-shaped attention bias</a>—where the middle portion of text receives less attention—and from <a href="https://arxiv.org/abs/2507.22887">positional bias</a>, where a token’s position in the sequence significantly affects output quality. The industry currently uses three main approaches to mitigate the limitations of long-text processing:</p>
+
+<li>Increase model parameters and improve memory management and inference speed (e.g., distributed inference, KV-cache optimization) to handle longer contexts, while using algorithmic methods to reduce positional bias.</li>
+
+<li><a href="https://arxiv.org/abs/2005.11401">RAG (Retrieval-Augmented Generation)</a>: split the long text into smaller chunks, retrieve the most relevant pieces, and feed those into the model to reduce computation.</li>
+
+<li>Adopt non-Transformer architectures such as Mamba. Mamba’s time complexity for long-sequence inference is linear $O(n)$, which is significantly better than Transformer’s quadratic complexity, making it more suitable for long-text tasks.</li>
+
+<h3 id="model-summary">Summary: Large Language Model Architecture and Working Mechanism</h3>
+
+<ul>
+    <li>Current mainstream large language models are essentially autoregressive probabilistic generators that predict the next token step-by-step.</li>
+    <li>The core architecture is the Transformer decoder; multi-head attention captures different types of contextual relationships, and the feed-forward network integrates global features.</li>
+    <li>Transformer variants such as MoE currently offer advantages in scale and inference speed.</li>
+    <li>Long-text processing faces bottlenecks such as VRAM limits, quadratic complexity, and positional bias; mainstream mitigations include scaling up models, RAG, or exploring new architectures like Mamba.</li>
+</ul>
+
+<h2 id="training">Data and Model Training</h2>
+
+<p>Compared to architectural discussions, the trajectory of model training is actually easier to follow. Architectural revolutions tend to arrive suddenly—whether Transformer continues to lead, Mamba rises to prominence, or the recent Hierarchical Reasoning Model (HRM) takes a new path—no one can give a definitive answer right now. But in training methods, researchers and practitioners seem to share a common direction, largely because there is a shared vision for AI’s long-term goals and a general sense of what capabilities models need to achieve it. OpenAI once proposed an interesting <a href="https://www.forbes.com/sites/jodiecook/2024/07/16/openais-5-levels-of-super-ai-agi-to-outperform-human-capability/">“five levels of AI capability” framework</a>:</p>
+
+<li>Level 1: Chatbot</li>
+<li>Level 2: Reasoning model</li>
+<li>Level 3: Agent</li>
+<li>Level 4: Innovator</li>
+<li>Level 5: Organizer</li>
+
+<p>We are currently roughly at Level 3—Agent—where competition is extremely fierce. Looking back at the first two stages, the breakthrough in chatbots was largely driven by large-scale pretraining and supervised fine-tuning (SFT). GPT-3 could already generate reasonably good content, but it wasn’t truly impressive; with the scaling law continuing to take effect, GPT-3.5 crossed the “wow threshold.” Many studies have shown that most of a large language model’s core capabilities come from pretraining. Pretraining means letting the model learn to predict the next token on massive text datasets, with filtering to ensure the prediction targets are meaningful.</p>
+
+<p>Pretraining makes a model “knowledgeable but not necessarily eloquent”—rich in knowledge, but not able to tailor language appropriately for the context. Without fine-tuning, a model often “dumps” all related information regardless of whether the user wants it, and may not know when to stop. SFT’s role is to use instruction–response data that reflects human expectations to teach it to “speak properly.” Some of these datasets are compiled from existing texts, others are written directly by humans. Knowledge distillation can also be used—having a large model act as a teacher, and using its answers to train smaller models—providing high-quality SFT data at lower cost.</p>
+
+<p>However, SFT has two issues: (1) high-quality human-written data is expensive, and (2) direct imitation may not perfectly match human preferences. This is where reinforcement learning from human feedback (RLHF) comes in—humans don’t need to write answers, only choose between outputs, and the model uses reward signals to adjust its generation to better match human expectations.</p>
+
+<p>In the reasoning model stage, combining SFT with RLHF has led to techniques like Chain-of-Thought (CoT), where reasoning steps are explicitly generated before the answer, allowing the model to internally organize more intermediate information and improve final accuracy. DeepSeek’s success is a representative case of RL + reasoning models. For example, <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1-Zero</a> skips SFT entirely, relying only on reward signals to induce a standardized reasoning process—analyzing prompts and planning answers—which has produced remarkable results.</p>
+
+<p>Due to the shock brought by DeepSeek, we can basically say that in training generative large language models, SFT has become less important, as reinforcement learning can solve many problems, even though RL is generally less efficient than SFT. Moreover, in the further development of large language models, RL is likely to become even more important. As mentioned earlier in the five levels of AI, at the Agent stage the available data is already limited, and data on actions and operations is inherently abstract and hard to obtain, making RL increasingly important at this stage. On the path toward Innovator, RL becomes even more critical, because we want the model to discover knowledge unknown to humans; in such cases, no training data exists and we must rely on human guidance to drive innovation and discovery. The recent <a href="https://arxiv.org/abs/2506.21734">Hierarchical Reasoning Model</a> hints at possible future developments: HRM can work with little or even no pretraining data, yet still solve reasoning tasks such as mazes. If this capability develops further, we might see another “AlphaGo moment,” where a model, guided by human-approved rules, uses RL to autonomously explore the frontiers of knowledge.</p>
+
+<p>However, it’s important to note: when reasoning models generate a “chain of thought,” it is often not truly thinking like a human, but producing a sequence of text that fits the training distribution. This means that even if the reasoning chain reads like a human analysis, it may still give a nonsensical final answer. For social science researchers, this is a crucial warning: <a href="https://www.anthropic.com/research/reasoning-models-dont-say-think">we cannot simply take a model’s “reasoning text” as evidence of its real thought process, nor infer its “cognitive patterns” from it</a>.</p>
+
+<h3 id="training-summary">Summary: Data and Model Training</h3>
+
+<ul>
+    <li><strong>Pretraining</strong> determines the breadth of knowledge and core abilities, but outputs may not match human expectations.</li>
+    <li><strong>SFT</strong> uses high-quality data to make the model “speak properly,” but is costly and may not perfectly match human preferences.</li>
+    <li><strong>RLHF</strong> flexibly adjusts outputs based on human feedback signals; it is gaining importance in reasoning models and will likely grow further in importance.</li>
+    <li><strong>Reasoning models</strong> (e.g., CoT) improve task accuracy, but generated “chains of thought” are not equivalent to genuine thought processes.</li>
+    <li><strong>HRM</strong> and similar methods suggest a future with reduced dependence on data for text-generation tasks, relying more on RL for autonomous exploration.</li>
+</ul>
+<h2 id="ops">Large Model Operations</h2>
+
+<p>Large model operations are not directly related to the model’s capabilities themselves, and most social science researchers will rarely interact with them directly, because this part mainly involves engineering issues - how to train, deploy, and operate large language models more efficiently. Understanding this process can help social science researchers develop a deeper appreciation of the services they encounter daily.</p>
+
+<p>Let’s start with what is closest to social science researchers: model operations. Once an AI company has a solid base model, to provide services to the public it must deploy the model, keep it accessible, and handle issues in a timely manner. We’ll work backward from the front end.</p>
+
+<p>What users usually see is the chatbot’s front-end interface (mostly web pages, sometimes apps). When they first open the page, the front end sends an initialization request to the AI company’s servers to obtain a session ID or token, used to distinguish this conversation from others and preserve context. Then, when the user enters a prompt, the front end packages it with the session ID, model parameters, and other info into an API request, and sends it via the internet to the AI company’s API Gateway. There, it first passes a “gatekeeper” check, which verifies your access rights, request format, and rate limits, before being handed to a global load balancer. The load balancer considers geographic location, real-time load, and network latency to route the task to a suitable inference cluster. The scheduler within that cluster then sends it to an idle or appropriately loaded GPU node. For efficiency, the platform layer will often wait a few milliseconds to combine your request with others into a micro-batch, sending them to the model in one go to significantly increase throughput. Before inference, the system retrieves prior conversation history from session storage and uses the key–value (KV) cache to reuse intermediate computations from the last inference, so it doesn’t need to recompute the entire token history, which greatly speeds up responses. This is a three-stage model: front end → platform → back end.</p>
+
+<p>In reality, the process is more complex than just front end → platform → back end. The front end is relatively simple, handling user interaction and content I/O. At the middle layers of the system, things become more involved. AI companies need to maximize compute resource usage while minimizing latency, which requires intelligently batching and routing tasks. This involves dynamic request aggregation. Since model inference is usually done in batches for efficiency, the platform often reserves a short time window, just a few milliseconds, to batch your request with others before sending them to the model. Once batched, requests are sent to a model replica on a specific node for computation.</p>
+
+<p>This brings us to the back end, which involves more engineering challenges. When running a model locally, the process is straightforward, just doing inference on a GPU. But at commercial scale, everything becomes more complex. AI infrastructure must address three concerns: compute, storage, and communication. Compute is obvious taht every inference involves computation; the key is maximizing GPU utilization to avoid wasted resources. Storage becomes an issue because in many scenarios, we want models to “warm start” without recomputing all prior tokens. This requires storing context and KV caches. In AI infrastructure, the biggest limitation is GPU VRAM, which is far more limited than CPU memory, making optimization critical. The combination of VRAM constraints and warm-start needs makes storage especially challenging. Communication is also essential—large models are often split across multiple GPUs (model parallelism, e.g., tensor or pipeline parallelism; multi-head attention naturally fits parallel computation). This requires GPUs to exchange results. In an ideal world with zero communication overhead, we could have a perfectly homogeneous distributed architecture. In reality, latency and bandwidth limitations must be considered, so engineers design architectures and protocols accordingly.</p>
+
+<p>The previous discussion also hints at scalability and distribution. Now, let’s touch on robustness, which is vital for all infrastructure. Robustness ensures the system can handle localized failures without impacting overall performance. For example, if a GPU in a node fails, it should be removed from the scheduling pool and new tasks should go to other replicas in the node. If the failed GPU held part of the model, the system must replace it quickly—pulling parameters from central storage—to restore capacity. Different companies may have different redundancy strategies. Given how precious compute is, most companies won’t allocate large amounts of redundant resources just to slightly improve fault tolerance for regular users.</p>
+
+<p>So far, we’ve covered abstract, low-level aspects. In practice, engineers create isolated containers on compute nodes, each running a model replica, managed by orchestration tools—most commonly Kubernetes (also used by OpenAI). Kubernetes is like a factory manager: deciding where each container runs, when it starts, and when it stops, based on demand and resources.</p>
+
+<p>Why containers and Kubernetes? Containers ensure environment consistency — whether on a developer’s laptop, a test server, or a large cloud cluster, the model runs in the same environment, avoiding “works on my machine” issues. Containers also provide isolation between user tasks, and portability across machines and cloud providers. Kubernetes adds scalability — when user traffic spikes, it spins up more replicas; when demand drops, it frees resources to cut costs. Think of it like a factory where each machine (node) has several workstations (containers), each with its own production line (model replica), and the factory manager (Kubernetes) allocates lines based on orders and capacity.</p>
+
+<p>Kubernetes isn’t a lone manager — it works with other “departments.” Inference frameworks (like vLLM and NVIDIA TensorRT-LLM) optimize batching, KV cache handling, and streaming. NVIDIA Device Plugin or GPU Operator expose GPU resources to containers so the scheduler can allocate them correctly. Distributed storage (Ceph, S3) holds model weights and caches for fast loading. Monitoring systems (Prometheus + Grafana) track latency, throughput, and GPU utilization, alerting engineers when issues arise.</p>
+
+<p>Other hidden challenges include: image pull speed — large model weights can be tens of GB, slowing startup; GPU topology scheduling — model parallelism requires high-speed interconnects (NVLink, InfiniBand), so GPUs must be physically well-connected; balancing elasticity and cost — more replicas mean lower latency but higher expense; multi-version deployments — serving different model versions to different users simultaneously; and hot upgrades — updating models or inference frameworks without interrupting active sessions requires careful rolling update strategies.</p>
+
+<h3 id="ops-summary">Summary: Large Model Operations (LLMOps)</h3>
+
+<ul>
+    <li>The service flow can be divided into front end → platform → back end: the front end handles user interaction, the platform does scheduling and batching, and the back end performs GPU inference.</li>
+    <li>Key techniques include KV caching (faster multi-turn conversation), micro-batching (higher throughput), and model parallelism (running across GPUs).</li>
+    <li>Deployment relies on containerization and orchestration (e.g., Kubernetes), combined with inference frameworks, distributed storage, and monitoring for elasticity and high availability.</li>
+    <li>Engineering challenges center on VRAM limits and communication latency.</li>
+</ul>
+
+<h2 id="safety">Extra Topic: Content Safety</h2>
+
+<p>Finally, let’s briefly talk about content safety. This is particularly important in countries and regions like China, where content compliance requirements are high. To prevent harmful outputs, in theory and in practice, interventions can be made at the data, training, and deployment levels.</p>
+
+<p>We know that most of a model’s capabilities come from pretraining. High-quality, large-scale pretraining data is critical. It’s hard to imagine Chinese AI companies investing massive effort into filtering data purely for compliance. According to China’s generative AI regulations, harmful content <a href="https://www.tc260.org.cn/front/postDetail.html?id=20240301164054">need only be below 5%</a>. This is already quite lenient, as most commonly used training datasets contain far less harmful content, especially in high-quality datasets. Second, interventions can be applied during training. For example, DeepSeek models, which rely heavily on reinforcement learning post-pretraining, can have preferences injected during the RL stage. To further ensure compliance, an unfiltered model can be prompted to produce refusal examples, which can then be used in SFT to teach the model to refuse certain requests.</p>
+
+<p>Finally, there is intervention at deployment. Observations of DeepSeek’s web chatbot suggest at least two layers of content moderation: first, pre-input filtering — keyword-based checks on prompts. Keyword-based filtering is both the fastest and most efficient method; more complex methods would slow responses significantly. Second, in-process supervision: as the model streams its response (one token at a time), the output is likely sent both to the user and to a supervisory model. This supervisory model is probably a small classifier or ensemble of classifiers, deciding if the content is harmful, and instructing the front end to retract it if so. Sometimes an answer is retracted after fully generating, suggesting that either in-process supervision remains active or there’s also a post-output review model. A post-output review could allow using a more powerful evaluator without worrying about latency.</p>
+<h3 id="safety-summary">Summary: Content Safety</h3>
+
+<ul>
+    <li>Intervention can occur at the data, training, and deployment levels.</li>
+    <li>China’s regulations set harmful content ≤ 5%; companies may have little incentive to completely remove sensitive content.</li>
+    <li>During training, RLHF or SFT can be used to teach the model to refuse sensitive questions.</li>
+    <li>At deployment, keyword filtering (fast but coarse) is often combined with supervisory models for real-time monitoring (more precise, can retract responses mid-generation or after output).</li>
+    <li>Moderation mechanisms must balance compliance, latency, and user experience.</li>
+</ul>
+
+<h2 id="other">Other Topics</h2>
+<p>Artificial intelligence is developing rapidly, and there are many other topics worth the attention of social science researchers. These will not be covered in this article, but here are some classic or important papers recommended in the following directions:</p>
+
+<li>Mechanistic interpretability: <a href="https://transformer-circuits.pub/2025/attribution-graphs/biology.html">On the Biology of a Large Language Model</a></li>
+<li>Agents: <a href="https://arxiv.org/pdf/2506.02153">Small Language Models are the Future of Agentic AI</a></li>
+<li>World models — information-theoretic model understanding: <a href="https://arxiv.org/abs/2505.17117">From Tokens to Thoughts: How LLMs and Humans Trade Compression for Meaning</a></li>
+</div>
+
+<script>
+(function(){
+  var toggle = document.getElementById('sidebar-toggle');
+  var sidebar = document.getElementById('sidebar');
+  if (!toggle || !sidebar) return;
+
+  // open/close + shift body
+  function toggleSidebar() {
+    var isOpen = sidebar.classList.toggle('open');
+    document.body.classList.toggle('sidebar-open', isOpen);
+  }
+  toggle.addEventListener('click', toggleSidebar);
+
+  // Active link highlight on scroll
+  var links = Array.prototype.slice.call(document.querySelectorAll('#sidebar a[href^="#"]'));
+  var headings = links
+    .map(function(a){ try { return document.querySelector(a.getAttribute('href')); } catch(e){ return null; } })
+    .filter(Boolean);
+
+  function onScroll() {
+    var pos = window.scrollY || window.pageYOffset;
+    var current = null;
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      if (h.offsetTop - 100 <= pos) current = h;
+    }
+    links.forEach(function(a){ a.classList.remove('active'); });
+    if (current) {
+      var active = document.querySelector('#sidebar a[href="#' + current.id + '"]');
+      if (active) active.classList.add('active');
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Close sidebar after clicking a link on mobile
+  links.forEach(function(a){
+    a.addEventListener('click', function(){
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('open');
+        document.body.classList.remove('sidebar-open');
+      }
+    });
+  });
+})();
+</script>
+
+
+</body>
+</html>
