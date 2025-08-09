@@ -5,19 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GPT Illustration</title>
   <link rel="stylesheet" href="https://leechihyu.github.io/posts/style.css">
-  <script type="text/x-mathjax-config"> MathJax.Hub.Config({ TeX: { equationNumbers: { autoNumber: "none" } } }); </script> 
 
-  <script type="text/x-mathjax-config">
-  MathJax.Hub.Config({
-    tex2jax: {
-  	inlineMath: [['$','$'], ['\\(','\\)']],
-  	displayMath: [ ['$$', '$$'] ],
-  	processEscapes: true,
-  	processEnvironments: true
-  	}
-  }); 
-  </head>
+  <!-- MathJax v3 config -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$']],
+        processEscapes: true,
+        processEnvironments: true,
+        tags: 'none'  // disables equation numbering
+      }
+    };
+  </script>
 
+  <!-- Load MathJax v3 -->
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+  
 <body>
     <div id="sidebar" class="sidebar">
         <button id="sidebar-toggle" class="sidebar-toggle">&#9776;</button>
@@ -427,6 +432,7 @@
 
 </body>
 </html>
+
 
 
 
