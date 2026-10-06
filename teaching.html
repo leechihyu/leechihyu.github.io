@@ -40,6 +40,22 @@
       margin: 0.25em 0;
     }
 
+    .section-materials,
+    .section-links {
+      list-style: none;
+      margin-left: 0;
+    }
+
+    .section-links {
+      margin-top: 0;
+      margin-bottom: 0;
+      margin-left: 1em;
+    }
+
+    .section-links li::before {
+      content: "- ";
+    }
+
     a {color: #990000; text-decoration:none;}
   </style>
 </head>
@@ -148,11 +164,17 @@
   </ul>
 
   <h2>Section Materials</h2>
-  <ul>
-    <li><a href="#section-1">Section 1</a></li>
-    <li><a href="#section-2">Section 2</a></li>
-    <li><a href="#section-3">Section 3</a></li>
-    <li><a href="#section-4">Section 4</a></li>
+  <ul class="section-materials">
+    <li>Section 1</li>
+    <li>Section 2</li>
+    <li>Section 3</li>
+    <li>Section 4</li>
+    <li>Section 5
+      <ul class="section-links">
+        <li><a href="./teaching/GOV50/section_5/lab-student.Rmd">in-class exercises</a></li>
+        <li><a href="./teaching/GOV50/section_5/nominate.csv">dataset</a></li>
+      </ul>
+    </li>
   </ul>
 </body>
 
