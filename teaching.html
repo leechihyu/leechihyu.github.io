@@ -171,12 +171,33 @@
     <li>Section 4</li>
     <li>Section 5
       <ul class="section-links">
-        <li><a href="https://raw.githubusercontent.com/leechihyu/leechihyu.github.io/main/teaching/gov50/section_5/lab-student.Rmd">in-class exercises</a></li>
+        <li><a id="lab-download" href="https://raw.githubusercontent.com/leechihyu/leechihyu.github.io/main/teaching/gov50/section_5/lab-student.Rmd" download="lab-student.Rmd">in-class exercises</a></li>
         <li><a href="./teaching/gov50/section_5/nominate.csv">dataset</a></li>
         <li><a href="./teaching/gov50/section_5/lab-instructor.pdf">instructor notes</a></li>
       </ul>
     </li>
   </ul>
+  <script>
+    // Fetch the unprocessed source, then use a local blob URL to trigger a download.
+    // Browsers ignore the download attribute on cross-origin links.
+    document.getElementById('lab-download').addEventListener('click', async function (event) {
+      event.preventDefault();
+      try {
+        const response = await fetch(this.href);
+        if (!response.ok) throw new Error('Download failed');
+        const url = URL.createObjectURL(await response.blob());
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = this.download;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      } catch (error) {
+        alert('The file could not be downloaded. Please try again.');
+      }
+    });
+  </script>
 </body>
 
 </html>
