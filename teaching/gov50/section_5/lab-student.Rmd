@@ -1,11 +1,12 @@
 ---
 title: "Section 5: Getting data into R and summarizing it"
 author: "Gov 50 Section"
-date: "October 7, 2026"
+date: "October 8, 2026"
 output:
   pdf_document:
     latex_engine: xelatex
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -129,8 +130,8 @@ Now knit the whole document with the **Knit** button, or **Cmd + Shift + K** (Ma
 **Step 6. Read the file and look at it.** The function you need depends on the file type, which is the ending of the file name. This file ends in `.csv`, which is plain text with commas between the values, and base R reads it with `read.csv()`. You give it the file name in quotes and store the result under a name of your choosing. What comes back is a data frame, so everything from section 3 applies. Then `str()` from section 3 shows what you loaded: how many rows and columns, each column's name and class, and its first few values.
 
 ```{r}
-# nominate <- read.csv("https://ascamara.github.io/gov50/nominate.csv")
-nominate <- read.csv("./nominate.csv")
+nominate <- read.csv("https://ascamara.github.io/gov50/nominate.csv")
+# nominate <- read.csv("./nominate.csv")
 str(nominate)
 ```
 
