@@ -183,7 +183,9 @@
     document.getElementById('lab-download').addEventListener('click', async function (event) {
       event.preventDefault();
       try {
-        const response = await fetch(this.href);
+        const source = new URL(this.href);
+        source.searchParams.set('download', Date.now().toString());
+        const response = await fetch(source, { cache: 'no-store' });
         if (!response.ok) throw new Error('Download failed');
         const url = URL.createObjectURL(await response.blob());
         const link = document.createElement('a');
