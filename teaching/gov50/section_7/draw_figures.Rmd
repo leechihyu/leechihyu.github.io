@@ -1,0 +1,447 @@
+---
+title: "Replicate State Capacity"
+author: "R replication of the figures"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    toc_depth: 2
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+## The Expectations
+
+### The final report
+
+**Replication**
+
+**Introduction**
+
+Summarize the paper and its basic findings. This can be 1–2 paragraphs.
+
+Address the following:
+
+- The big research question
+- Their theory
+- Their specific research question (that you’re replicating)
+- Their hypothesis (that you’re replicating)
+
+**Descriptive information**
+
+Include an appropriate selection of descriptive statistics and plots.
+Aim for at least two plots and, preferably, all relevant summary
+statistics. The following options are examples, not an exhaustive list:
+
+- Histogram
+- Density plot
+- Scatterplot
+- Other suitable plots, such as box plots, bar charts, or line charts
+- Summary statistics: mean, median, standard deviation, and percentiles
+- Correlation between the outcome and the variable of interest
+
+**Main analysis (Replication)**
+
+This should almost certainly be a bivariate or multiple regression.
+
+- One regression table with a basic interpretation
+- One figure related to the regression (for example, a coefficient plot
+  or a scatterplot with a fitted regression line), with a basic
+  interpretation
+
+**Conclusion**
+
+Discuss the takeaways of the analysis, what can be inferred, and its
+limitations. What are some alternative explanations for the theorized
+relationship? This should lead into and motivate the extension. This can
+be 1–2 paragraphs.
+
+------------------------------------------------------------------------
+
+**Extension**
+
+Repeat the process above for the new variable or analysis.
+
+**Introduction**
+
+Explain the theory motivating the extension, including any criticism of
+the original paper.
+
+Address the following:
+
+- Your theory
+- Specific research question(s)
+- Testable hypotheses that directly correspond to the question(s)
+
+**Descriptive information**
+
+Include an appropriate selection of descriptive statistics and plots.
+Aim for at least two plots and, preferably, all relevant summary
+statistics. Examples include:
+
+- Histogram
+- Density plot
+- Scatterplot
+- Other suitable plots, such as box plots, bar charts, or line charts
+- Summary statistics: mean, median, standard deviation, and percentiles
+
+**Main analysis (Extension)**
+
+This should almost certainly be a bivariate or multiple regression that
+slightly alters the replication analysis. For example:
+
+- Add one or two variables to the regression analysis, perhaps by
+  merging another dataset.
+
+- Apply a similar analysis to a different dataset (for example, use
+  experimental data in the replication and observational data in the
+  extension to address the same question).
+
+- One regression table with a basic interpretation
+
+- One figure related to the regression (for example, a coefficient plot
+  or a scatterplot with a fitted regression line), with a basic
+  interpretation
+
+**Conclusion**
+
+Discuss the takeaways of the analysis, what can be inferred, and its
+limitations. What did we learn beyond the original replication? This can
+be 1–2 paragraphs.
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+## The Outline of the Presentation
+
+### Replication
+
+*You should only refer to this part and have your own version and more
+details that you like.* *You should think independently of the
+structure.*
+
+- Could the introduction of technology strengthen state capacity?
+- A large literature said yes.
+- However, adopting new technology may also reorganize bureaucracy,
+  which could weaken state capacity.
+- This study investigated the digitalization reform in Punjab, Pakistan,
+  asking two questions:
+  - Did digitalization weaken the state’s ability to collect tax?
+  - If so, why?
+
+**Two main questions**
+
+1.  Did digitalization weaken the state’s ability to collect tax?
+
+    - [ ] Descriptive: Spatial distribution of the digitalization reform
+    - [ ] Descriptive: Temporal distribution of the digitalization
+      reform
+    - [ ] Inferential: Are distributions from different phases similar?
+    - [ ] Inferential: Use DiD to show whether the reform weakened the
+      state’s ability to collect tax.
+
+2.  Why was the ability weakened?
+
+    - [ ] Did the tax base decrease?
+    - [ ] Did bureaucrats work less?
+    - [ ] Did bureaucrats have less influence over taxpayers, making
+      them less capable of collecting tax?
+
+- Based on these results, the study concluded that the digitalization
+  reform weakened state capacity.
+- The reform had a spillover effect on local bureaucrats’ ability to
+  collect tax: they lost influence.
+- Limitations: xxx
+- Challenges: xxx
+
+### Extension
+
+TBD
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+## Code: Replication
+
+### Load the libraries
+
+```{r}
+library("tidyverse") # useful functions for processing dataframes; ggplot
+
+library("sf") # short for "simple feature"; load SHP files
+library("haven") # load dta files
+```
+
+### Figure 1: Spatial Distribution
+
+**Datasets**
+
+1.  `./Map/District-Punjab_shapefile/Punjab_districts.shp`: Map dataset.
+2.  `./Data/Analysis/Tax_District_Yr.dta`: Dataset with phase
+    information.
+
+```{r}
+# 1. Quickly draw a map to see what would happen.
+
+# 2. To make the map more informative, we need additional information.
+#    First, check the dataset with phase information.
+
+# 3. Merge the two datasets to draw a map with richer information.
+
+# 4. Finish and refine the map:
+#    4.1 Add district names.
+#    4.2 Use different colors for each phase and include a clear legend.
+#    4.3 Add a title, caption, and other finishing touches.
+```
+
+**Takeaway:** You now know how to draw an informative map. Try creating
+a map of the United States, Europe, the globe, or another region.
+
+### Figure 2: Temporal Distribution
+
+`./Data/Analysis/Tax_digitization_MY.dta`: Tax digitalization data by
+month and year. `./Map/phasekey.csv`: a dataset containing district id
+
+- `fin_from`: Number of months since January 1, 1960.
+- `total_mauzas`: The number of mauzas in a district
+- `d_notified_dummy_sum`: Number of notified mauza (digitalized mauza).
+- Note: A mauza is a specific administrative and revenue-collection unit
+  used for land records in India, Pakistan, and Bangladesh (c.f.
+  Wikipedia).
+
+```{r figure-2, fig.width=9, fig.height=5}
+rollout_source <- read_dta("./Data/Analysis/Tax_digitization_MY.dta")
+
+rollout_source <- subset(
+  rollout_source,
+  year >= 2011 & year <= 2017
+)
+
+# Assign each district to its rollout phase
+rollout_source$phase <- NA_real_
+
+rollout_source$phase[
+  rollout_source$district %in%
+    c(1, 5, 10, 11, 13, 17, 19, 20, 25, 34, 30)
+] <- 1
+
+rollout_source$phase[
+  rollout_source$district %in%
+    c(3, 9, 12, 14, 18, 22, 23, 24, 26, 28, 32, 33, 35)
+] <- 2
+
+rollout_source$phase[
+  rollout_source$district %in%
+    c(2, 4, 6, 7, 8, 15, 16, 21, 27, 29, 31, 36)
+] <- 3
+
+rollout_source <- subset(rollout_source, !is.na(phase))
+
+# get the total number of mauzas
+id_mauzas_array <- with(
+  rollout_source,
+  tapply(
+    total_mauzas,
+    list(id, district, phase),
+    function(x) {
+      if (all(is.na(x))) {
+        NA_real_
+      } else {
+        max(x, na.rm = TRUE)
+      }
+    }
+  )
+)
+
+id_mauzas <- as.data.frame.table(
+  id_mauzas_array,
+  responseName = "total_mauzas",
+  stringsAsFactors = FALSE
+)
+
+names(id_mauzas) <- c(
+  "id",
+  "district",
+  "phase",
+  "total_mauzas"
+)
+
+id_mauzas$id <- as.numeric(id_mauzas$id)
+id_mauzas$district <- as.numeric(id_mauzas$district)
+id_mauzas$phase <- as.numeric(id_mauzas$phase)
+
+# Remove unobserved combinations created by tapply()
+id_mauzas <- subset(id_mauzas, !is.na(total_mauzas))
+
+
+# get total number of mauzas in each phase
+phase_totals_array <- with(
+  id_mauzas,
+  tapply(
+    total_mauzas,
+    phase,
+    sum,
+    na.rm = TRUE
+  )
+)
+
+phase_totals <- data.frame(
+  phase = as.numeric(names(phase_totals_array)),
+  total_mauzas = as.numeric(phase_totals_array)
+)
+
+
+# total number of digitalized mauzas in each month and phase
+monthly_notified_array <- with(
+  rollout_source,
+  tapply(
+    d_notified_dummy_sum,
+    list(fin_from, phase),
+    sum,
+    na.rm = TRUE
+  )
+)
+
+rollout_monthly <- as.data.frame.table(
+  monthly_notified_array,
+  responseName = "notified",
+  stringsAsFactors = FALSE
+)
+
+names(rollout_monthly) <- c(
+  "fin_from",
+  "phase",
+  "notified"
+)
+
+rollout_monthly$fin_from <- as.numeric(rollout_monthly$fin_from)
+rollout_monthly$phase <- as.numeric(rollout_monthly$phase)
+
+# Remove month-phase cells not observed in the original data
+rollout_monthly <- subset(rollout_monthly, !is.na(notified))
+
+rollout_monthly <- rollout_monthly[
+  order(rollout_monthly$phase, rollout_monthly$fin_from),
+]
+
+
+
+# Calculate cumulative digitization and proportion digitized
+rollout_monthly$digitized_cumulative <- ave(
+  rollout_monthly$notified,
+  rollout_monthly$phase,
+  FUN = cumsum
+)
+
+rollout_monthly <- merge(
+  rollout_monthly,
+  phase_totals,
+  by = "phase",
+  all.x = TRUE,
+  sort = FALSE
+)
+
+rollout_monthly <- rollout_monthly[
+  order(rollout_monthly$phase, rollout_monthly$fin_from),
+]
+
+rollout_monthly$share_digitized <-
+  rollout_monthly$digitized_cumulative /
+  rollout_monthly$total_mauzas
+
+# Stata monthly date: months since January 1960
+rollout_monthly$month_date <- as.Date(
+  sprintf(
+    "%04d-%02d-01",
+    1960 + floor(rollout_monthly$fin_from / 12),
+    rollout_monthly$fin_from %% 12 + 1
+  )
+)
+
+rollout_monthly$phase_label <- factor(
+  rollout_monthly$phase,
+  levels = c(1, 2, 3),
+  labels = c(
+    "Phase 1 districts",
+    "Phase 2 districts",
+    "Phase 3 districts"
+  )
+)
+
+figure_3 <- ggplot(
+  rollout_monthly,
+  aes(
+    x = month_date,
+    y = share_digitized,
+  )
+) +
+  geom_line(aes(linetype = phase_label),
+            color = "black",
+            linewidth = 0.8
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "Phase 1 districts" = "solid",
+      "Phase 2 districts" = "dashed",
+      "Phase 3 districts" = "dotted"
+    )
+  ) +
+  scale_x_date(
+    date_breaks = "1 year",
+    date_labels = "%Y"
+  ) +
+  coord_cartesian(
+    ylim = c(0, 1)
+  ) +
+  labs(
+    x = NULL,
+    y = "Proportion of villages digitized",
+    linetype = NULL
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    legend.position = "bottom"
+  )
+
+figure_3
+```
+
+### Figure 3: Balance Test
+
+```{r}
+```
+
+**Takeaway:** You can now compare differences between groups.
+
+### Figure 4: DiD
+
+```{r}
+```
+
+### Table 1: DiD Results
+
+```{r}
+```
+
+### Table 2: A shrinking Tax Base?
+
+```{r}
+```
+
+### Figure 5a: The bureaucrats worked less?
+
+```{r}
+bureaucrat_tasks <- read_dta("./Data/Analysis/Bureaucrat_tasks.dta")
+```
+
+### Figure 5b: The bureaucrats had less influence over taxpayers so they became less capable in collecting tax?
+
+```{r}
+bureaucrat_views <- read_dta("./Data/Analysis/Bureaucrat_views.dta")
+```
+
+## Code: Extension
