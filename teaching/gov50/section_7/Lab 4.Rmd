@@ -1,0 +1,195 @@
+---
+title: "Lab 4: Working with ggplot"
+author: "Gov 50 Section"
+date: "Week of October 19"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 6.5, fig.height = 3.5)
+```
+
+## Today
+
+The goal of today's section is twofold. First, we will provide a more comprehensive introduction to `ggplot` than you have seen before. Second, we will apply what we've learned to the final replication project. Unlike previous labs, this R lab will be more closely integrated into your specific replication paper. The blocks are all `Watch It`: follow along on your laptop while your TF demonstrates the principles of `ggplot`. There is no `Try It` after each block. Instead, a single `Try It` section at the end gives you time to make progress on the data in your final project, and what you do there is left to the discretion of your TF.
+
+By the end of the section, you will be able to:
+
+1. Use ggplot to graph plots and graphs.
+2. Add titles and axis labels.
+3. Apply ggplot to make a figure (or several) for your replication project.
+
+
+## Block 0: Preparation and Warmup
+
+We will be working with the Nominate dataset from the last lab. Please make sure that this `.Rmd` file and the `nominate.csv` dataset from the previous lab are saved in the same folder. If you don't have `nominate.csv` from before, you can use `read.csv("https://ascamara.github.io/gov50/nominate.csv")` instead.
+
+Now, set your working directory to this file's location using **Session > Set Working Directory > To Source File Location**. Then run:
+
+```{r load-data}
+library(ggplot2)
+nominate <- read.csv("nominate.csv")
+str(nominate)
+```
+
+Recall from the last lab that the dataset gives ideological scores for members of Congress, based on their roll-call voting record. Each row is one member in one session of Congress (not a unique person). The variable `score` gives the NOMINATE score, in which lower values are more liberal and higher values are more conservative. Note that a few scores are missing.
+
+## Block 1: The Grammar of Graphics
+
+The "gg" in ggplot stands for the **grammar of graphics**. The idea is that every graph or plot is built from a set of components, the way every sentence is built from nouns and verbs. Each component is layered on top of each other iteratively: you start with a layer that specifies the raw data, and then you can add layers that specify different statistical summaries, lines, and so on. The advantage of ggplot is that it allows you to be flexible: rather than being confined to particular templates, you can layer elements on top of each other.
+
+Every ggplot has the same template. The first three parts are required to specify which dataset you are using and how it's mapped onto the axes. Everything else has a default.
+
+```
+ggplot(DATA, aes(MAPPINGS)) +
+  GEOM() +
+  ...anything else, one + at a time
+```
+
+To see the layers at work, take the current House from last lab and add one part at a time. Let's build the distribution of NOMINATE scores for 2025.
+
+```{r}
+house_now <- subset(nominate, year == 2025)
+```
+
+*Step 1: data only.* R knows which data frame to use but not which columns, so it draws an empty canvas.
+
+```{r, fig.height = 2}
+ggplot(house_now)
+```
+
+*Step 2: add a mapping.* Now R knows `score` goes on the x-axis, so it draws the axis, but there is still nothing marking the data.
+
+```{r, fig.height = 2}
+ggplot(house_now, aes(x = score))
+```
+
+*Step 3: add a geom.* `geom_histogram()` splits the x-axis into bins and draws a bar for how many members fall in each. A histogram only needs `x`; it computes the y-axis (the count) for you.
+
+```{r, warning = FALSE}
+ggplot(house_now, aes(x = score)) +
+  geom_histogram(binwidth = 0.05)
+```
+
+The two humps are the two parties, with almost no one in the middle. That one picture is the polarization story from last lab, told about a single Congress. `binwidth` sets how wide each bar is; try 0.01 and 0.2 to see why it matters.
+
+Swapping the geom changes the kind of plot while everything else stays the same. Here is the same data as a smoothed density curve.
+
+```{r, warning = FALSE, fig.height = 2.4}
+ggplot(house_now, aes(x = score)) +
+  geom_density()
+```
+
+## Block 2: Types of geoms
+
+The geom is the part of the plot that actually marks the data: a bar, a point, a line, a box. Which geom you want depends on what kind of variables you are plotting and what question you are asking. Here are the ones you will use most.
+
+| Type of graph | Command |
+|---|---|
+| Histogram | `geom_histogram()` |
+| Density plot | `geom_density()` |
+| Bar chart | `geom_bar()` |
+| Box plot | `geom_boxplot()` |
+| Scatter plot | `geom_point()` |
+| Line plot | `geom_line()` |
+
+You already saw histograms and density plots in Block 1. Here are the rest, all from the same dataset.
+
+**Bar chart.** `geom_bar()` counts the rows in each category, so like a histogram it only needs `x`. Here is how many members of each party were in the 2025 House.
+
+```{r, fig.height = 2.4}
+ggplot(house_now, aes(x = party)) +
+  geom_bar()
+```
+
+**Scatter plot.** `geom_point()` draws one point per row. Here every member of every Congress since 1879 gets a point, with the year on the x-axis and their score on the y-axis. There are over 31,000 points, so `alpha = 0.05` makes each one nearly see-through. Where many points pile up, the plot gets darker.
+
+```{r, warning = FALSE}
+ggplot(nominate, aes(x = year, y = score)) +
+  geom_point(alpha = 0.05)
+```
+
+You can see the two parties as two dark bands that come closer together in the middle of the century and then pull apart.
+
+**Line plot.** A line connects the points in order along the x-axis, so it suits one value per time period. The next chunk builds that kind of table, just as in Lab 3: `tapply()` gets the Republican median in every Congress, and `data.frame()` puts it next to the years, one row per Congress.
+
+```{r}
+reps <- subset(nominate, party == "Republican")
+rep_medians <- data.frame(year  = unique(nominate$year),
+                          score = tapply(reps$score, reps$year, median, na.rm = TRUE))
+head(rep_medians, 3)
+```
+
+```{r, fig.height = 2.4}
+ggplot(rep_medians, aes(x = year, y = score)) +
+  geom_line()
+```
+
+**Stacking geoms.** Because ggplot is built in layers, you can use more than one geom in the same plot. Adding `geom_point()` puts a dot on each Congress along the line.
+
+```{r, fig.height = 2.4}
+ggplot(rep_medians, aes(x = year, y = score)) +
+  geom_line() +
+  geom_point()
+```
+
+Notice that in every one of these plots, only the geom and the columns in `aes()` changed. The template stayed the same.
+
+
+## Block 3: Axis labels and titles
+
+So far ggplot has labeled every axis with the column name, like `score` and `year`. That is fine while you are exploring, but a figure for a reader needs real labels. `labs()` sets all of them at once.
+
+```{r}
+ggplot(rep_medians, aes(x = year, y = score)) +
+  geom_line() +
+  labs(x = "Year",
+       y = "Median NOMINATE Score",
+       title = "Median House NOMINATE Scores from 1879 to 2025",
+       subtitle = "Republican Members Only",
+       caption = "Source: Voteview")
+```
+
+| Argument of `labs()` | What it labels |
+|---|---|
+| `x`, `y` | the axes |
+| `title` | the main title, at the top |
+| `subtitle` | a smaller line under the title |
+| `caption` | small text in the bottom right, often the data source |
+
+**Axis limits.** ggplot zooms the axes to fit the data. The line plot above makes the Republican median look like it swings wildly, but the y-axis only runs from about 0.25 to 0.55. `ylim()` sets the lowest and highest values on the y-axis; here we show the full NOMINATE scale from −1 to 1. `geom_hline()` adds a dashed reference line at 0, the center of the scale.
+
+```{r}
+ggplot(rep_medians, aes(x = year, y = score)) +
+  geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  ylim(-1, 1) +
+  labs(x = "Year", y = "Median NOMINATE score",
+       title = "The Republican median in the House, 1879 to 2025")
+```
+
+## Bonus Block: Themes
+
+A **theme** is a preset style. It controls the background, the gridlines, and the fonts (basically, everything except the data). ggplot's default is the gray background you have seen in previous figures. Adding a theme as the last layer changes the style and often makes the graph look more professional.
+
+```{r}
+ggplot(rep_medians, aes(x = year, y = score)) +
+  geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  ylim(-1, 1) +
+  labs(x = "Year", y = "Median NOMINATE score",
+       title = "The Republican median in the House, 1879 to 2025") +
+  theme_minimal()
+```
+
+Try swapping `theme_minimal()` for `theme_bw()`, `theme_classic()`, or `theme_light()`.
+
+## Try It: Your replication project
+
+For the rest of section, work on your replication paper's data.
+
+## Before you leave
+
+Knit this file to PDF and upload it to Gradescope as directed by your TF.
