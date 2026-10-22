@@ -1,0 +1,292 @@
+---
+title: "Analysis of Real-News Party Cues"
+author: ""
+output:
+  pdf_document:
+    latex_engine: xelatex
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+## The Expectations
+
+### The final report
+
+**Replication**
+
+**Introduction**
+
+Summarize the paper and its basic findings. This can be 1–2 paragraphs.
+
+Address the following:
+
+- The big research question
+- Their theory
+- Their specific research question (that you’re replicating)
+- Their hypothesis (that you’re replicating)
+
+**Descriptive information**
+
+Include an appropriate selection of descriptive statistics and plots.
+Aim for at least two plots and, preferably, all relevant summary
+statistics. The following options are examples, not an exhaustive list:
+
+- Histogram
+- Density plot
+- Scatterplot
+- Other suitable plots, such as box plots, bar charts, or line charts
+- Summary statistics: mean, median, standard deviation, and percentiles
+- Correlation between the outcome and the variable of interest
+
+**Main analysis (Replication)**
+
+This should almost certainly be a bivariate or multiple regression.
+
+- One regression table with a basic interpretation
+- One figure related to the regression (for example, a coefficient plot
+  or a scatterplot with a fitted regression line), with a basic
+  interpretation
+
+**Conclusion**
+
+Discuss the takeaways of the analysis, what can be inferred, and its
+limitations. What are some alternative explanations for the theorized
+relationship? This should lead into and motivate the extension. This can
+be 1–2 paragraphs.
+
+------------------------------------------------------------------------
+
+**Extension**
+
+Repeat the process above for the new variable or analysis.
+
+**Introduction**
+
+Explain the theory motivating the extension, including any criticism of
+the original paper.
+
+Address the following:
+
+- Your theory
+- Specific research question(s)
+- Testable hypotheses that directly correspond to the question(s)
+
+**Descriptive information**
+
+Include an appropriate selection of descriptive statistics and plots.
+Aim for at least two plots and, preferably, all relevant summary
+statistics. Examples include:
+
+- Histogram
+- Density plot
+- Scatterplot
+- Other suitable plots, such as box plots, bar charts, or line charts
+- Summary statistics: mean, median, standard deviation, and percentiles
+
+**Main analysis (Extension)**
+
+This should almost certainly be a bivariate or multiple regression that
+slightly alters the replication analysis. For example:
+
+- Add one or two variables to the regression analysis, perhaps by
+  merging another dataset.
+
+- Apply a similar analysis to a different dataset (for example, use
+  experimental data in the replication and observational data in the
+  extension to address the same question).
+
+- One regression table with a basic interpretation
+
+- One figure related to the regression (for example, a coefficient plot
+  or a scatterplot with a fitted regression line), with a basic
+  interpretation
+
+**Conclusion**
+
+Discuss the takeaways of the analysis, what can be inferred, and its
+limitations. What did we learn beyond the original replication? This can
+be 1–2 paragraphs.
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+## The Outline of the Presentation
+
+### Replication
+
+You can refer to this outline as a guide, and build your own
+presentation structure and add the detail needed to explain your
+research question, evidence, and conclusions.
+
+- Do party cues lead people to express policy opinions that are more
+  consistent with their party's position?
+- Earlier research often found that party cues influence people's
+  opinions. 
+- This study asks whether that pattern also appears in
+  realistic news articles.
+  - Real-news party cues are not always clear
+and salient.
+  - News content often offers alternatives to
+cue-taking.
+- The study examines whether party cues in real news articles affect
+  policy support, and whether the effect varies across respondents or
+  article characteristics.
+
+**Questions**
+
+1.  Are people affected in general?
+
+    - [ ] Describe the respondents.
+      - [ ] Table 1: demographic distributions
+      - [ ] Figure 1: demographic distributions; compare with census
+        benchmarks only when the measures and population are comparable
+      - [ ] Figure 2: distribution of party identification
+    - [ ] Describe the articles.
+      - [ ] Table 2: distributions of article characteristics
+      - [ ] Example: original article compared with its modified version
+    - [ ] Estimate the effect of real-news party cues.
+      - [ ] Table 3: regression results
+      - [ ] Figure 3: a figure similar to the paper's main result
+
+2.  Does the effect vary across respondents or articles?
+
+    - [ ] Figure 4: respondent characteristics
+      - Pretreatment knowledge of positions
+      - Passing all attention checks
+      - Interest in the article
+      - Strength of party identification
+    - [ ] Figure 5: article characteristics
+      - Number of potential party cues
+      - Whether the two parties agree or disagree
+      - Whether the article includes an in-party or out-party cue
+      - Issue type
+
+- Summarize the authors' conclusion and compare it with your estimates.
+- Limitations.
+- Challenges.
+
+### Extension
+
+State the extension's research question, theory, and testable
+hypothesis. Identify what changes from the replication, what data and
+analysis you will use, and what result would support your hypothesis.
+
+## Code: Replication
+
+### 0. Load the libraries
+
+`tidyverse` provides tools for data manipulation and plotting.
+`patchwork` arranges multiple `ggplot2` figures in one layout.
+
+```{r}
+library("tidyverse")
+library("patchwork")
+```
+
+## 1. Load the data
+
+```{r load-data}
+data_file <- "Data_experiments.csv"
+
+df_survey <- read.csv(data_file)
+```
+
+
+### Table 1: distributions of individual characteristics
+
+- Gender
+- Age_group
+- Education
+- Race
+- Fam_income
+- Region
+- Political_interest
+
+```{r}
+# Use the codebook "Codebook for Data_experiments.pdf" to label values.
+# Examples:
+# Gender: 1, 2; "woman", "man"
+# Age_group: 1, 2, 3, 4: "18-34", "35-54", "55-69", "+70"
+# Education: 1, 2, 3, 4, 5, 6; "no high school", "high school grad", "some college",
+## "2-year", "4-year", "post-grad".
+
+```
+
+### Figure 1: demographic distributions in the sample
+
+```{r}
+# Draw one bar chart for each characteristic.
+
+```
+
+### Figure 2: the distribution of party identification
+
+This plot shows the first party-identification response. The codes are:
+1 = Republican, 2 = Democrat, 3 = Independent, 4 = Other, 5 = Don't
+know, and 6 = Would rather not say.
+
+```{r}
+# Label all response categories for the descriptive plot.
+
+```
+
+### Table 2: Distributions of categories
+
+- Rep_position_in_article
+- Dem_position_in_article
+- Federal_nonfederal
+- Issue_type
+
+```{r}
+
+```
+
+### Table 3: regression table
+
+Before estimating the model, create the outcome so that its direction is
+consistent across respondents with different party affiliations. In
+`Policy_support`, 1 means strongly support the proposal and 7 means
+strongly oppose it. The party-aligned outcome instead increases as a
+respondent's answer becomes more consistent with their own party's
+position in the article.
+
+The recoding involves several decisions:
+
+1. Identify Republican and Democratic respondents using the party-ID
+   questions specified by the study. Other party responses do not have
+   a major-party-aligned score.
+2. Recode each party's article position as support or oppose. If one
+   party is not mentioned, the analysis may infer its position from the
+   other party's position as described in the study's coding rules.
+   Leave unclear or otherwise unusable positions missing.
+3. Reverse the 1-to-7 answer when needed so that higher values always
+   indicate greater alignment with the respondent's party.
+4. Rescale valid values to 0–1. On this scale, a positive party-cue
+   coefficient means the cue condition is associated with greater
+   party-aligned policy support than the control condition.
+
+
+```{r}
+
+```
+
+
+### Figure 3: Figure 1 in the paper
+
+```{r}
+
+```
+
+### Figure 4: Individual characteristics
+
+```{r}
+
+```
+
+### Figure 5: Article characteristics
+
+```{r}
+
+```
